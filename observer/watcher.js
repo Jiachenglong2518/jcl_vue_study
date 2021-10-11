@@ -3,13 +3,13 @@ export default class Watcher {
   constructor (vm, expOrFn,cb) {
     this.vm = vm
     this.cb = cb;
-    this.getter = this.parsePath(expOrFn)
+    this.getter = this.parsePath(expOrFn) 
     this.val = this.get()
   }
   get () {
     window.target = this;
     const vm = this.vm;
-    let val = this.getter.call(vm. vm)
+    let val = this.getter.call(vm. vm) //获取数据，添加进依赖
     window.target = undefined; //??  为什么设为undefined??
     return val
   }
