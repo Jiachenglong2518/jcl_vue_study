@@ -7,6 +7,21 @@ const arrayMethods = Object.create(arrayProto);
   var original = arrayProto[method]
   Object.defineProperty(arrayMethods, method, {
     value: function mutator (...args) {
+      const ob = this.__ob__
+      ob.dep.notify()
+      let inserted
+      switch (method) {
+        case "push":
+        case "unshift":
+          inserted = args
+          break;
+        case "splice":
+          inserted = args.split(2)
+          break;
+      }
+      if (inserted) {
+        ob.observeArray(inserted)
+      }
       return original.apply(this, args)
     },
     enumerable: false,  //为true时该属性会出现在该对象的枚举属性

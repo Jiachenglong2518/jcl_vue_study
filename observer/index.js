@@ -7,10 +7,12 @@ class Observer  {
   constructor (val) {
     this.val = val
     this.deep = new Dep() //将数组 的deep保存在这里，可以让getter和拦截器都能访问到
+    def(val, "__ob__", this)
     if (Array.isArray(val)) {
       // 用拦截后的数组原型方法覆盖监听数组的原型方法
       const augment = hasproto ? protoAugment : copyAugment
       augment(val, arrayMethods, arraykeys)
+      this.observeArray(val)
     } else {
       this.walk(val);
 
@@ -42,7 +44,7 @@ function defineReactive (data, key , val) {
     configurable: true,
     get () {
       dep.depend() // data的依赖添加
-      if (childOb) {
+      if (childOb) { //复杂数据类型才会继续监测
         childOb.dep.depend() // val的依赖添加
       }
       return val
@@ -84,8 +86,44 @@ function copyAugment (target, src, keys) {
     def(target, key, src[key])
   }
 }
+/**
+ * @Author: jiachenglong
+ * @Date: 2021-10-21 15:20:30
+ * @description: 
+ * @param {*} val
+ * @param {*} asRootData
+ * @return {*}
+ */
+ function observe(val, asRootData) {
+  if (!isObject(val)) { // 数据类型不是复杂数据类型，不需要继续检测，已经监测到了
+    return
+  }
+  let ob
+  // instanceof 运算符用于检测构造函数的 prototype 属性是否出现在某个实例对象的原型链上。
+  if(hasOwn(val, "__ob__") && val.__ob__ instanceof Observer) {
+    ob = val.__ob__
+  } else {
+    ob = new Observer(val)
+  }
+  return ob
+ }
+ 
+ function isObject(obj) {
+  return obj !== null && typeof obj === 'object'
+ }
 
-
+ /**
+ * Check whether an object has the property.
+ */
+var hasOwnProperty = Object.prototype.hasOwnProperty;
+function hasOwn (obj, key) {
+  return hasOwnProperty.call(obj, key)
+}
+function observeArray (items) {
+  for(let i = 0; i< items.length ; i++){
+    observe(item[i])
+  }
+}
 
 
 
