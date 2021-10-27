@@ -6,7 +6,7 @@
   addSub (sub) {
     this.subs.push(sub);
   }
-
+  // 删除依赖
   removeSub (sub) {
     remove(this.subs, sub) 
   }

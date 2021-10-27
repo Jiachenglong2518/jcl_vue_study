@@ -6,8 +6,8 @@ const arraykeys = Object.getOwnPropertyNames(arrayMethods); //被拦截的数组
 class Observer  {
   constructor (val) {
     this.val = val
-    this.deep = new Dep() //将数组 的deep保存在这里，可以让getter和拦截器都能访问到
-    def(val, "__ob__", this)
+    this.dep = new Dep() //将数组 的deep保存在这里，可以让getter和拦截器都能访问到
+    def(val, "__ob__", this)// 1 将Observer实例挂载到val的__ob__属性上；2 标识val是否被观测
     if (Array.isArray(val)) {
       // 用拦截后的数组原型方法覆盖监听数组的原型方法
       const augment = hasproto ? protoAugment : copyAugment
@@ -40,12 +40,16 @@ function defineReactive (data, key , val) {
   let childOb = observe(val) //获取对象属性值的实例，（如何该值不是可响应的则为该值闯将Obersever实例）
   let dep = new Dep() // data 依赖列表
   Object.defineProperty(data, key, {
-    enumerable: true,
-    configurable: true,
+    enumerable: true, //为true，该属性回出现在对象的枚举属性中
+    configurable: true, //为true， value可以被改变
     get () {
       dep.depend() // data的依赖添加
-      if (childOb) { //复杂数据类型才会继续监测
+      if (childOb) { // 复杂数据类型才会继续监测
         childOb.dep.depend() // val的依赖添加
+        // 此时需要特殊处理数组的依赖，循环数组内容给数组每一个元素添加依赖
+        if (Array.isArray(value)) { 
+          dependArray(value)
+        }
       }
       return val
     },
@@ -122,6 +126,16 @@ function hasOwn (obj, key) {
 function observeArray (items) {
   for(let i = 0; i< items.length ; i++){
     observe(item[i])
+  }
+}
+
+function dependArray (value: Array<any>) {
+  for (let e, i = 0, l = value.length; i < l; i++) {
+    e = value[i]
+    e && e.__ob__ && e.__ob__.dep.depend()
+    if (Array.isArray(e)) {
+      dependArray(e)
+    }
   }
 }
 

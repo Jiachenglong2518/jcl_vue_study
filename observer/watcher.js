@@ -10,7 +10,7 @@ export default class Watcher {
     window.target = this;
     const vm = this.vm;
     let val = this.getter.call(vm. vm) //获取数据，添加进依赖
-    window.target = undefined; //??  为什么设为undefined??
+    window.target = undefined;
     return val
   }
   update (val) {
